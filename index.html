@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Merge AR Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- A-Frame -->
+  <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+</head>
+<body>
+  <a-scene embedded vr-mode-ui="enabled: false" renderer="colorManagement: true">
+    
+    <!-- Luci -->
+    <a-entity light="type: ambient; intensity: 0.7"></a-entity>
+    <a-entity light="type: directional; intensity: 0.6" position="0 4 4"></a-entity>
+
+    <!-- Piano di riferimento -->
+    <a-plane position="0 0 0" rotation="-90 0 0" width="3" height="3" color="#777" opacity="0.2"></a-plane>
+
+    <!-- Container cubi -->
+    <a-entity id="pieces"></a-entity>
+
+    <!-- Camera -->
+    <a-entity camera position="0 1.6 3"></a-entity>
+  </a-scene>
+
+  <!-- Script principale inline -->
+  <script>
+    (function(){
+      const piecesContainer = document.getElementById('pieces');
+
+      // Genera 6 cubi fluttuanti
+      for (let i = 0; i < 6; i++) {
+        const box = document.createElement('a-box');
+        box.setAttribute('depth', '0.2');
+        box.setAttribute('height', '0.2');
+        box.setAttribute('width', '0.2');
+        box.setAttribute('color', '#' + Math.floor(Math.random()*16777215).toString(16));
+        
+        // Posizione iniziale casuale davanti alla camera
+        const x = (Math.random() - 0.5).toFixed(2);
+        const y = (Math.random() * 0.5 + 0.3).toFixed(2);
+        const z = (-1 - Math.random() * 0.5).toFixed(2);
+        box.setAttribute('position', `${x} ${y} ${z}`);
+        
+        // Aggiunge drag
+        box.setAttribute('draggable', 'planeY:0.1');
+        piecesContainer.appendChild(box);
+      }
+
+      // Componente drag semplice
+      AFRAME.registerComponent('draggable', {
+        schema: { planeY: { type: 'number', default: 0 } },
+        init: function() {
+          const el = this.el;
+          const camera = this.el.sceneEl.camera;
+          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -this.data.planeY);
+          const raycaster = new THREE.Raycaster();
+          let offset = new THREE.Vector3();
+          let dragging = false;
+
+          function onDown(evt) {
+            dragging = true;
+            const touch = evt.touches ? evt.touches[0] : evt;
+            const ndc = new THREE.Vector2(
+              (touch.clientX / window.innerWidth) * 2 - 1,
+              -(touch.clientY / window.innerHeight) * 2 + 1
+            );
+            raycaster.setFromCamera(ndc, camera);
+            const intersect = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, intersect);
+            offset.copy(el.object3D.position).sub(intersect);
+          }
+
+          function onMove(evt) {
+            if (!dragging) return;
+            const touch = evt.touches ? evt.touches[0] : evt;
+            const ndc = new THREE.Vector2(
+              (touch.clientX / window.innerWidth) * 2 - 1,
+              -(touch.clientY / window.innerHeight) * 2 + 1
+            );
+            raycaster.setFromCamera(ndc, camera);
+            const intersect = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, intersect);
+            el.object3D.position.copy(intersect.add(offset));
+          }
+
+          function onUp() { dragging = false; }
+
+          el.addEventListener('mousedown', onDown);
+          el.addEventListener('touchstart', onDown, {passive:false});
+          window.addEventListener('mousemove', onMove, {passive:false});
+          window.addEventListener('touchmove', onMove, {passive:false});
+          window.addEventListener('mouseup', onUp);
+          window.addEventListener('touchend', onUp);
+        }
+      });
+    })();
+  </script>
+</body>
+</html>
+
