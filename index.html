@@ -1,26 +1,34 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Merge AR Drag Test</title>
+  <meta charset="utf-8">
+  <title>Drag Cubes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+
+  <!-- Draggable component (usiamo aframe-draggable-component) -->
+  <script src="https://unpkg.com/aframe-draggable-component/dist/aframe-draggable-component.min.js"></script>
 </head>
 <body>
   <a-scene>
-    <!-- Piano di riferimento -->
+    <!-- piano di riferimento -->
     <a-plane position="0 0 0" rotation="-90 0 0" width="3" height="3" color="#777" opacity="0.2"></a-plane>
 
-    <!-- Container cubi -->
+    <!-- container per i cubi -->
     <a-entity id="pieces"></a-entity>
 
-    <!-- Camera -->
-    <a-camera position="0 1.6 3"></a-camera>
+    <!-- camera fissa (disattivata la rotazione) -->
+    <a-camera position="0 1.6 3" look-controls="enabled: false"></a-camera>
   </a-scene>
 
-  <!-- JS per drag -->
+  <!-- script principale -->
   <script src="js/main.js"></script>
 </body>
 </html>
+
+
+
 
 
