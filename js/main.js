@@ -18,21 +18,31 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(box);
   }
 
-  // Logica merge
+  // Funzione merge
+  function mergeCubes(indexA, indexB) {
+    const cubeA = cubi[indexA];
+    const cubeB = cubi[indexB];
+
+    // Prende la posizione del cubeB e la setta a cubeA usando setAttribute
+    const posB = cubeB.getAttribute('position');
+    cubeA.setAttribute('position', {
+      x: posB.x,
+      y: posB.y,
+      z: posB.z
+    });
+
+    // Cambia colore per indicare merge
+    cubeA.setAttribute('color', '#f00');
+  }
+
+  // Pulsante merge
   mergeBtn.addEventListener('click', () => {
     if (currentIndex >= cubi.length - 1) {
       alert("Tutti i cubi sono stati mergiati!");
       return;
     }
-    const cubeA = cubi[currentIndex];
-    const cubeB = cubi[currentIndex + 1];
-
-    // Per ora: sposta cubeA sopra cubeB e cambia colore per indicare merge
-    cubeA.object3D.position.copy(cubeB.object3D.position);
-    cubeA.setAttribute('color', '#f00');
-
-    console.log(`Merged cube ${currentIndex} with cube ${currentIndex+1}`);
-
-    currentIndex++; // passa al prossimo cubo da mergiare
+    mergeCubes(currentIndex, currentIndex + 1);
+    console.log(`Merged cube ${currentIndex} with cube ${currentIndex + 1}`);
+    currentIndex++;
   });
 });
