@@ -1,14 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('pieces');
-  const camera = document.getElementById('camera');
 
   let selectedBox = null;
   let offset = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  let zFixed = -2; // profondità fissa
 
-  // Creazione cubi
+  // Crea 6 cubi colorati
   for (let i = 0; i < 6; i++) {
     const box = document.createElement('a-box');
     box.setAttribute('depth', '0.3');
@@ -18,17 +16,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0');
     box.setAttribute('color', color);
 
-    const x = (i - 2.5) * 0.6;
-    const y = 0.5;
-    box.setAttribute('position', `${x} ${y} ${zFixed}`);
-
+    // li metto sopra il marker Hiro
+    box.setAttribute('position', `${(i - 2.5) * 0.6} 0.3 0`);
     box.setAttribute('class', 'draggable');
     box.id = 'cube' + i;
 
     container.appendChild(box);
   }
 
-  // Funzioni comuni per mouse e touch
+  // Calcola coordinate normalizzate del tocco/click
   function updateMouse(event) {
     if (event.touches) {
       mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
@@ -39,46 +35,56 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Pointer down / touchstart → seleziona cubo
+  // Inizio trascinamento
   function onPointerDown(event) {
     updateMouse(event);
-    raycaster.setFromCamera(mouse, camera.getObject3D('camera'));
-    const intersects = raycaster.intersectObjects(Array.from(container.children).map(c => c.object3D), true);
+    const camera = document.querySelector('[camera]').getObject3D('camera');
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(
+      Array.from(container.children).map(c => c.object3D),
+      true
+    );
     if (intersects.length > 0) {
       selectedBox = intersects[0].object.el;
-      const intersectionPoint = new THREE.Vector3();
-      raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
+      const intersectionPoint = intersects[0].point;
       offset.copy(selectedBox.object3D.position).sub(intersectionPoint);
     }
   }
 
-  // Pointer move / touchmove → muovi cubo
+  // Durante trascinamento
   function onPointerMove(event) {
     if (!selectedBox) return;
     updateMouse(event);
-    raycaster.setFromCamera(mouse, camera.getObject3D('camera'));
-    const intersectionPoint = new THREE.Vector3();
-    raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
-    if (intersectionPoint) {
+    const camera = document.querySelector('[camera]').getObject3D('camera');
+    raycaster.setFromCamera(mouse, camera);
+
+    // calcola intersezione con il piano del marker
+    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+    const point = new THREE.Vector3();
+    raycaster.ray.intersectPlane(plane, point);
+
+    if (point) {
       selectedBox.object3D.position.set(
-        intersectionPoint.x + offset.x,
-        intersectionPoint.y + offset.y,
-        zFixed
+        point.x + offset.x,
+        selectedBox.object3D.position.y, // manteniamo altezza
+        point.z + offset.z
       );
     }
   }
 
-  // Pointer up / touchend → rilascia cubo
+  // Fine trascinamento
   function onPointerUp() {
     selectedBox = null;
   }
 
-  // Event listeners per desktop e mobile
+  // Eventi mouse (desktop)
   window.addEventListener('mousedown', onPointerDown);
   window.addEventListener('mousemove', onPointerMove);
   window.addEventListener('mouseup', onPointerUp);
 
+  // Eventi touch (mobile)
   window.addEventListener('touchstart', onPointerDown);
   window.addEventListener('touchmove', onPointerMove);
   window.addEventListener('touchend', onPointerUp);
 });
+
