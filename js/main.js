@@ -26,8 +26,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'models/piece6.glb'
   ];
 
-  const raggio = 1.5;        // disposizione circolare
-  const pezzoScale = 0.2;    // scala più piccola per i modelli
+  const raggio = 1.5;        
+  const pezzoScale = 0.25;   
+  const raggioSnap = 1;      
 
   // Creazione pezzi GLB in cerchio
   for (let i = 0; i < models.length; i++) {
@@ -39,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     piece.setAttribute('gltf-model', models[i]);
     piece.setAttribute('position', {x: x, y: y, z: zFixed});
     piece.setAttribute('scale', {x: pezzoScale, y: pezzoScale, z: pezzoScale});
+    piece.dataset.locked = "false";
 
     piece.addEventListener('model-loaded', () => console.log('Caricato', models[i]));
 
@@ -59,7 +61,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function onPointerDown(event){
     updateMouse(event);
     raycaster.setFromCamera(mouse, camera.getObject3D('camera'));
-    const intersects = raycaster.intersectObjects(pieces.map(p => p.object3D), true);
+    const intersects = raycaster.intersectObjects(
+      pieces.filter(p => p.dataset.locked === "false").map(p => p.object3D), true
+    );
     if(intersects.length>0){
       selectedPiece = intersects[0].object.el;
       const intersectionPoint = new THREE.Vector3();
@@ -75,19 +79,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const intersectionPoint = new THREE.Vector3();
     raycaster.ray.at((zFixed - raycaster.ray.origin.z)/raycaster.ray.direction.z, intersectionPoint);
 
-    selectedPiece.setAttribute('position',{
+    const newPos = {
       x: intersectionPoint.x + offset.x,
       y: intersectionPoint.y + offset.y,
       z: zFixed
-    });
+    };
+
+    selectedPiece.setAttribute('position', newPos);
+
+    // evidenziazione zona snap
+    const distanzaCentro = Math.sqrt((newPos.x - centerPos.x)**2 + (newPos.y - centerPos.y)**2);
+    if(distanzaCentro < raggioSnap){
+      selectedPiece.setAttribute('scale', {
+        x: pezzoScale * 1.2,
+        y: pezzoScale * 1.2,
+        z: pezzoScale * 1.2
+      });
+    } else {
+      selectedPiece.setAttribute('scale', {
+        x: pezzoScale,
+        y: pezzoScale,
+        z: pezzoScale
+      });
+    }
   }
 
   function checkAllAtCenter(){
-    return pieces.every(p => {
-      const pos = p.getAttribute('position');
-      const distanza = Math.sqrt((pos.x - centerPos.x)**2 + (pos.y - centerPos.y)**2);
-      return distanza < 0.6;
-    });
+    return pieces.every(p => p.dataset.locked === "true");
   }
 
   function onPointerUp(){
@@ -96,8 +114,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pos = selectedPiece.getAttribute('position');
     const distanzaCentro = Math.sqrt((pos.x - centerPos.x)**2 + (pos.y - centerPos.y)**2);
 
-    if(distanzaCentro < 0.6){
-      // Animazione verso il centro
+    if(distanzaCentro < raggioSnap){
+      // Snap al centro
       selectedPiece.setAttribute('animation__move', {
         property: 'position',
         to: `${centerPos.x} ${centerPos.y} ${centerPos.z}`,
@@ -111,7 +129,16 @@ document.addEventListener('DOMContentLoaded', () => {
         easing: 'easeOutQuad'
       });
 
+      // Blocca il pezzo
+      selectedPiece.dataset.locked = "true";
+
       centerText.setAttribute('visible','false');
+    } else {
+      selectedPiece.setAttribute('scale', {
+        x: pezzoScale,
+        y: pezzoScale,
+        z: pezzoScale
+      });
     }
 
     selectedPiece = null;
@@ -119,15 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
       if(checkAllAtCenter()){
         // Rimuovi tutti i pezzi originali
-        pieces.forEach(p => {
-          if(p.parentNode) p.parentNode.removeChild(p);
-        });
+        pieces.forEach(p => { if(p.parentNode) p.parentNode.removeChild(p); });
 
-        // Crea la sfera finale centrale
-        const finalShape = document.createElement('a-sphere');
-        finalShape.setAttribute('color','#FFD700');
+        // Mostra il GLB finale al centro
+        const finalShape = document.createElement('a-entity');
+        finalShape.setAttribute('gltf-model','models/piece_final.glb');
         finalShape.setAttribute('position',{...centerPos});
-        finalShape.setAttribute('radius',0.5);
+        finalShape.setAttribute('scale',{x:0.5, y:0.5, z:0.5}); // regola a piacere
         center.appendChild(finalShape);
 
         // Animazione di fluttuazione
