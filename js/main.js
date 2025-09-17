@@ -1,11 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('pieces');
   const sceneEl = document.querySelector('a-scene');
+  const container = document.getElementById('pieces');
   const cameraEl = document.getElementById('camera');
 
   let selectedBox = null;
+  let offset = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
   const zFixed = -2;
+  let currentNDC = null; // posizione del dito in NDC
+  let xrSession = null;
 
   // crea cubi
   for (let i = 0; i < 6; i++) {
@@ -18,8 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const x = (i - 2.5) * 0.6;
     const y = 0.5;
     box.setAttribute('position', `${x} ${y} ${zFixed}`);
-
     box.setAttribute('class', 'draggable');
+
     container.appendChild(box);
   }
 
@@ -27,10 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return Array.from(container.children).map(c => c.object3D);
   }
 
-  function setRayFromCenter() {
+  function setRayFromNDC(ndc) {
     const cam = cameraEl.getObject3D('camera');
     if (!cam) return false;
-    raycaster.setFromCamera({x: 0, y: 0}, cam);
+    raycaster.setFromCamera(ndc, cam);
     return true;
   }
 
@@ -44,36 +47,52 @@ document.addEventListener('DOMContentLoaded', () => {
     return point;
   }
 
-  // selezione in AR/VR
-  sceneEl.addEventListener('selectstart', () => {
-    if (!setRayFromCenter()) return;
+  function trySelectAtNDC(ndc) {
+    if (!setRayFromNDC(ndc)) return false;
     const intersects = raycaster.intersectObjects(getObjects(), true);
     if (intersects.length > 0) {
       selectedBox = intersects[0].object.el;
+      const ip = getIntersection();
+      if (ip) offset.copy(selectedBox.object3D.position).sub(ip);
+      return true;
     }
+    return false;
+  }
+
+  // --- Touch su mobile (funziona anche in AR) ---
+  sceneEl.addEventListener('loaded', () => {
+    const canvas = sceneEl.canvas;
+
+    canvas.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      currentNDC = new THREE.Vector2(
+        (t.clientX / window.innerWidth) * 2 - 1,
+        -(t.clientY / window.innerHeight) * 2 + 1
+      );
+      trySelectAtNDC(currentNDC);
+    }, { passive: false });
+
+    canvas.addEventListener('touchmove', (e) => {
+      const t = e.touches[0];
+      currentNDC = new THREE.Vector2(
+        (t.clientX / window.innerWidth) * 2 - 1,
+        -(t.clientY / window.innerHeight) * 2 + 1
+      );
+    }, { passive: false });
+
+    canvas.addEventListener('touchend', () => {
+      selectedBox = null;
+      currentNDC = null;
+    }, { passive: false });
   });
 
-  sceneEl.addEventListener('selectend', () => {
-    selectedBox = null;
-  });
-
-  // loop XR per aggiornare posizione del cubo
-  sceneEl.addEventListener('enter-vr', () => {
-    const session = sceneEl.renderer.xr.getSession();
-    if (!session) return;
-
-    function onXRFrame(t, frame) {
-      if (selectedBox && setRayFromCenter()) {
-        const ip = getIntersection();
-        if (ip) {
-          selectedBox.object3D.position.set(ip.x, ip.y, zFixed);
-        }
-      }
-      session.requestAnimationFrame(onXRFrame);
-    }
-    session.requestAnimationFrame(onXRFrame);
-  });
-});
+  // --- Mouse per desktop (debug) ---
+  window.addEventListener('mousedown', (e) => {
+    const ndc = new THREE.Vector2(
+      (e.clientX / window.innerWidth) * 2 - 1,
+      -(e.clientY / window.innerHeight) * 2 + 1
+    );
+    tryS
 
 
 
