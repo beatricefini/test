@@ -1,12 +1,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('pieces');
+  const camera = document.getElementById('camera');
 
   let selectedBox = null;
   let offset = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
+  let zFixed = -2; // profondità fissa
 
-  // Crea 6 cubi colorati
+  // Creazione cubi
   for (let i = 0; i < 6; i++) {
     const box = document.createElement('a-box');
     box.setAttribute('depth', '0.3');
@@ -16,15 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0');
     box.setAttribute('color', color);
 
-    // li metto sopra il marker Hiro
-    box.setAttribute('position', `${(i - 2.5) * 0.6} 0.3 0`);
+    const x = (i - 2.5) * 0.6;
+    const y = 0.5;
+    box.setAttribute('position', `${x} ${y} ${zFixed}`);
+
     box.setAttribute('class', 'draggable');
     box.id = 'cube' + i;
 
     container.appendChild(box);
   }
 
-  // Calcola coordinate normalizzate del tocco/click
+  // Funzioni comuni per mouse e touch
   function updateMouse(event) {
     if (event.touches) {
       mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
@@ -35,56 +39,105 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Inizio trascinamento
+  // Pointer down / touchstart → seleziona cubo
   function onPointerDown(event) {
     updateMouse(event);
-    const camera = document.querySelector('[camera]').getObject3D('camera');
-    raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(
-      Array.from(container.children).map(c => c.object3D),
-      true
-    );
+    raycaster.setFromCamera(mouse, camera.getObject3D('camera'));
+    const intersects = raycaster.intersectObjects(Array.from(container.children).map(c => c.object3D), true);
     if (intersects.length > 0) {
       selectedBox = intersects[0].object.el;
-      const intersectionPoint = intersects[0].point;
+      const intersectionPoint = new THREE.Vector3();
+      raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
       offset.copy(selectedBox.object3D.position).sub(intersectionPoint);
     }
   }
 
-  // Durante trascinamento
+  // Pointer move / touchmove → muovi cubo
   function onPointerMove(event) {
-    if (!selectedBox) return;
-    updateMouse(event);
-    const camera = document.querySelector('[camera]').getObject3D('camera');
-    raycaster.setFromCamera(mouse, camera);
+   document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('pieces');
+  const cameraEl = document.getElementById('camera');
+  const camera = cameraEl.getObject3D('camera');
 
-    // calcola intersezione con il piano del marker
-    const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
-    const point = new THREE.Vector3();
-    raycaster.ray.intersectPlane(plane, point);
+  let selectedBox = null;
+  let offset = { x: 0, y: 0 };
+  const zFixed = -2;
 
-    if (point) {
-      selectedBox.object3D.position.set(
-        point.x + offset.x,
-        selectedBox.object3D.position.y, // manteniamo altezza
-        point.z + offset.z
-      );
-    }
+  // Crea cubi
+  for (let i = 0; i < 6; i++) {
+    const box = document.createElement('a-box');
+    box.setAttribute('depth', '0.3');
+    box.setAttribute('height', '0.3');
+    box.setAttribute('width', '0.3');
+    box.setAttribute('color', '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+    const x = (i - 2.5) * 0.6;
+    const y = 0.5;
+    box.setAttribute('position', `${x} ${y} ${zFixed}`);
+    box.classList.add('draggable');
+    container.appendChild(box);
   }
 
-  // Fine trascinamento
+  // Converti touch/mouse in posizione 3D sul piano zFixed
+  function getPlanePosition(clientX, clientY) {
+    const rect = document.body.getBoundingClientRect();
+    const ndcX = (clientX / rect.width) * 2 - 1;
+    const ndcY = -(clientY / rect.height) * 2 + 1;
+
+    const vector = new THREE.Vector3(ndcX, ndcY, 0.5);
+    vector.unproject(camera);
+
+    const dir = vector.sub(camera.position).normalize();
+    const distance = (zFixed - camera.position.z) / dir.z;
+    const pos = camera.position.clone().add(dir.multiplyScalar(distance));
+    return pos;
+  }
+
+  function onPointerDown(event) {
+    event.preventDefault();
+    let clientX = event.clientX, clientY = event.clientY;
+    if (event.touches) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    }
+
+    const pos = getPlanePosition(clientX, clientY);
+
+    // seleziona il cubo più vicino
+    let minDist = Infinity;
+    container.querySelectorAll('.draggable').forEach(box => {
+      const bPos = box.object3D.position;
+      const dist = bPos.distanceTo(pos);
+      if (dist < 0.3 && dist < minDist) {
+        selectedBox = box;
+        offset.x = bPos.x - pos.x;
+        offset.y = bPos.y - pos.y;
+        minDist = dist;
+      }
+    });
+  }
+
+  function onPointerMove(event) {
+    if (!selectedBox) return;
+    event.preventDefault();
+    let clientX = event.clientX, clientY = event.clientY;
+    if (event.touches) {
+      clientX = event.touches[0].clientX;
+      clientY = event.touches[0].clientY;
+    }
+    const pos = getPlanePosition(clientX, clientY);
+    selectedBox.object3D.position.set(pos.x + offset.x, pos.y + offset.y, zFixed);
+  }
+
   function onPointerUp() {
     selectedBox = null;
   }
 
-  // Eventi mouse (desktop)
   window.addEventListener('mousedown', onPointerDown);
   window.addEventListener('mousemove', onPointerMove);
   window.addEventListener('mouseup', onPointerUp);
 
-  // Eventi touch (mobile)
-  window.addEventListener('touchstart', onPointerDown);
-  window.addEventListener('touchmove', onPointerMove);
+  window.addEventListener('touchstart', onPointerDown, {passive:false});
+  window.addEventListener('touchmove', onPointerMove, {passive:false});
   window.addEventListener('touchend', onPointerUp);
 });
 

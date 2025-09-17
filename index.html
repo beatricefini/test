@@ -2,24 +2,17 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <title>Drag Cubes AR.js</title>
+  <title>Drag Cubes AR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- A-Frame -->
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <!-- AR.js con supporto A-Frame -->
-  <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/3.3.2/aframe/build/aframe-ar.js"></script>
 </head>
-<body style="margin:0; overflow:hidden;">
-  <a-scene embedded arjs>
-    
-    <!-- Marker Hiro standard -->
-    <a-marker preset="hiro">
-      <a-entity id="pieces"></a-entity>
-    </a-marker>
+<body>
+  <a-scene>
+    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#777" opacity="0.2"></a-plane>
+    <a-entity id="pieces"></a-entity>
 
-    <!-- Camera AR.js -->
-    <a-entity camera></a-entity>
+    <a-camera position="0 1.6 3" id="camera"></a-camera>
   </a-scene>
 
   <script src="js/main.js"></script>
