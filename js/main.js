@@ -18,9 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const pieces = [];
   const formeIniziali = ["box","sphere","cone","cylinder","torus","tetrahedron"];
-  const raggio = 2;
+  const raggio = 1.5; // cerchio più vicino al centro
+  const pezzoScale = 0.2; // scala più piccola
 
-  // Creazione pezzi iniziali
+  // Creazione pezzi iniziali in cerchio e scala più piccola
   for (let i = 0; i < 6; i++) {
     const angle = (i / 6) * Math.PI * 2;
     const x = Math.cos(angle) * raggio;
@@ -29,9 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const piece = document.createElement(`a-${formeIniziali[i]}`);
     piece.setAttribute('color', '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
     piece.setAttribute('position', {x: x, y: y, z: zFixed});
-    piece.setAttribute('depth', 0.3);
-    piece.setAttribute('height', 0.3);
-    piece.setAttribute('width', 0.3);
+    piece.setAttribute('scale', `${pezzoScale} ${pezzoScale} ${pezzoScale}`);
 
     container.appendChild(piece);
     pieces.push(piece);
@@ -77,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return pieces.every(p => {
       const pos = p.getAttribute('position');
       const distanza = Math.sqrt((pos.x - centerPos.x)**2 + (pos.y - centerPos.y)**2);
-      return distanza < 0.6; // consideriamo il pezzo “al centro”
+      return distanza < 0.6;
     });
   }
 
@@ -97,12 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       selectedPiece.setAttribute('animation__scale', {
         property: 'scale',
-        to: '0.7 0.7 0.7',
+        to: '0.5 0.5 0.5', // ridotta
         dur: 500,
         easing: 'easeOutQuad'
       });
 
-      // Sparisci testo guida
       centerText.setAttribute('visible','false');
     }
 
@@ -115,11 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
           if(p.parentNode) p.parentNode.removeChild(p);
         });
 
-        // Crea la forma finale centrale (sfera)
+        // Crea la forma finale centrale (sfera più piccola)
         const finalShape = document.createElement('a-sphere');
         finalShape.setAttribute('color','#FFD700');
         finalShape.setAttribute('position',{...centerPos});
-        finalShape.setAttribute('radius',0.8);
+        finalShape.setAttribute('radius',0.5); // più piccola
         center.appendChild(finalShape);
 
         // Animazione di fluttuazione continua
@@ -132,7 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
           to: `${centerPos.x} ${centerPos.y + 0.3} ${centerPos.z}`
         });
       }
-    },600); // attendiamo animazione dei pezzi
+    },600);
   }
 
   window.addEventListener('mousedown', onPointerDown);
