@@ -1,13 +1,18 @@
-document.addEventListener('DOMContentLoaded', () => {
+document.querySelector('a-scene').addEventListener('loaded', () => {
   const container = document.getElementById('pieces');
   const cameraEl = document.getElementById('camera');
   const camera = cameraEl.getObject3D('camera');
+
+  if (!camera) {
+    console.error("Camera non trovata!");
+    return;
+  }
 
   let selectedBox = null;
   let offset = new THREE.Vector3();
   const raycaster = new THREE.Raycaster();
   const mouse = new THREE.Vector2();
-  const zFixed = -2; // profondità fissa del piano
+  const zFixed = -2; // profondità fissa dei cubi
 
   // Creazione cubi
   for (let i = 0; i < 6; i++) {
@@ -23,13 +28,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const y = 0.5;
     box.setAttribute('position', `${x} ${y} ${zFixed}`);
 
-    box.setAttribute('class', 'draggable');
-    box.id = 'cube' + i;
-
+    box.classList.add('draggable');
     container.appendChild(box);
   }
 
-  // Funzione per aggiornare le coordinate del mouse/touch
+  // Funzione per aggiornare le coordinate mouse/touch
   function updateMouse(event) {
     if (event.touches) {
       mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
@@ -44,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function onPointerDown(event) {
     updateMouse(event);
     raycaster.setFromCamera(mouse, camera);
+
     const intersects = raycaster.intersectObjects(
       Array.from(container.children).map(c => c.object3D), true
     );
@@ -60,8 +64,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function onPointerMove(event) {
     if (!selectedBox) return;
     updateMouse(event);
-    const intersectionPoint = new THREE.Vector3();
     raycaster.setFromCamera(mouse, camera);
+
+    const intersectionPoint = new THREE.Vector3();
     raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
 
     selectedBox.object3D.position.set(
@@ -76,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedBox = null;
   }
 
-  // Event listener desktop e mobile
+  // Event listener mouse + touch
   window.addEventListener('mousedown', onPointerDown);
   window.addEventListener('mousemove', onPointerMove);
   window.addEventListener('mouseup', onPointerUp);
