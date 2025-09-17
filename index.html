@@ -1,170 +1,30 @@
+<!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <title>Merge AR Game</title>
-  <title>Merge AR Drag Test</title>
+  <meta charset="utf-8">
+  <title>Drag Cubes AR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <!-- A-Frame -->
+
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
 <body>
-  <a-scene embedded vr-mode-ui="enabled: false" renderer="colorManagement: true">
-    
-    <!-- Luci -->
-    <a-entity light="type: ambient; intensity: 0.7"></a-entity>
-    <a-entity light="type: directional; intensity: 0.6" position="0 4 4"></a-entity>
-  <a-scene>
-    <!-- Piano di riferimento -->
-    <a-plane position="0 0 0" rotation="-90 0 0" width="3" height="3" color="#777" opacity="0.2"></a-plane>
+  <a-scene
+    embedded
+    vr-mode-ui="enabled: false"
+    ar-mode="true"
+    renderer="colorManagement: true, physicallyCorrectLights: true"
+    device-orientation-permission-ui="enabled: true">
 
-    <!-- Container cubi -->
+    <!-- piano trasparente come ground -->
+    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4"
+             color="#777" opacity="0.1"></a-plane>
+
     <a-entity id="pieces"></a-entity>
 
-    <!-- Camera -->
-    <a-entity camera position="0 1.6 3"></a-entity>
-    <a-camera position="0 1.6 3"></a-camera>
+    <!-- camera AR -->
+    <a-entity id="camera" camera look-controls></a-entity>
   </a-scene>
 
-  <!-- Script principale inline -->
-  <script>
-    (function(){
-      const piecesContainer = document.getElementById('pieces');
-      // Genera 6 cubi fluttuanti
-      for (let i = 0; i < 6; i++) {
-        const box = document.createElement('a-box');
-        box.setAttribute('depth', '0.2');
-        box.setAttribute('height', '0.2');
-        box.setAttribute('width', '0.2');
-        // Colore sempre valido (6 cifre)
-        const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0');
-        box.setAttribute('color', color);
-        
-        // Posizione iniziale casuale davanti alla camera
-        const x = (Math.random() - 0.5).toFixed(2);
-        const y = (Math.random() * 0.5 + 0.3).toFixed(2);
-        const z = (-1 - Math.random() * 0.5).toFixed(2);
-        box.setAttribute('position', `${x} ${y} ${z}`);
-        
-        // Aggiunge drag
-        box.setAttribute('draggable', 'planeY:0.1');
-        piecesContainer.appendChild(box);
-      }
-      // Componente drag semplice
-      AFRAME.registerComponent('draggable', {
-        schema: { planeY: { type: 'number', default: 0 } },
-        init: function() {
-          const el = this.el;
-          const camera = this.el.sceneEl.camera;
-          const plane = new THREE.Plane(new THREE.Vector3(0, 1, 0), -this.data.planeY);
-          const raycaster = new THREE.Raycaster();
-          let offset = new THREE.Vector3();
-          let dragging = false;
-          function onDown(evt) {
-            dragging = true;
-            const touch = evt.touches ? evt.touches[0] : evt;
-            const ndc = new THREE.Vector2(
-              (touch.clientX / window.innerWidth) * 2 - 1,
-              -(touch.clientY / window.innerHeight) * 2 + 1
-            );
-            raycaster.setFromCamera(ndc, camera);
-            const intersect = new THREE.Vector3();
-            raycaster.ray.intersectPlane(plane, intersect);
-            offset.copy(el.object3D.position).sub(intersect);
-          }
-          function onMove(evt) {
-            if (!dragging) return;
-            const touch = evt.touches ? evt.touches[0] : evt;
-            const ndc = new THREE.Vector2(
-              (touch.clientX / window.innerWidth) * 2 - 1,
-              -(touch.clientY / window.innerHeight) * 2 + 1
-            );
-            raycaster.setFromCamera(ndc, camera);
-            const intersect = new THREE.Vector3();
-            raycaster.ray.intersectPlane(plane, intersect);
-            el.object3D.position.copy(intersect.add(offset));
-          }
-          function onUp() { dragging = false; }
-          el.addEventListener('mousedown', onDown);
-          el.addEventListener('touchstart', onDown, {passive:false});
-          window.addEventListener('mousemove', onMove, {passive:false});
-          window.addEventListener('touchmove', onMove, {passive:false});
-          window.addEventListener('mouseup', onUp);
-          window.addEventListener('touchend', onUp);
-        }
-      });
-    })();
-  </script>
-  <!-- JS per drag -->
-  <script src="js/main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
-
-‎js/main.js
-+73
-Lines changed: 73 additions & 0 deletions
-Original file line number	Diff line number	Diff line change
-@@ -0,0 +1,73 @@
-// main.js pronto per aggiungere logica drag/merge
-// Per esempio, potrai selezionare i cubi così:
-// const cube0 = document.getElementById('cube0');
-// Componente A-Frame per drag con mouse e touch
-AFRAME.registerComponent('drag-rotate', {
-  init: function () {
-    const el = this.el;
-    let isDragging = false;
-    let startX, startZ;
-    // Mouse
-    el.addEventListener('mousedown', (evt) => {
-      isDragging = true;
-      startX = evt.clientX;
-      startZ = evt.clientY;
-    });
-    window.addEventListener('mouseup', () => isDragging = false);
-    window.addEventListener('mousemove', (evt) => {
-      if (!isDragging) return;
-      const deltaX = (evt.clientX - startX) / 100;
-      const deltaZ = (evt.clientY - startZ) / 100;
-      const pos = el.getAttribute('position');
-      el.setAttribute('position', { x: pos.x + deltaX, y: pos.y, z: pos.z + deltaZ });
-      startX = evt.clientX;
-      startZ = evt.clientY;
-    });
-    // Touch
-    el.addEventListener('touchstart', (evt) => {
-      isDragging = true;
-      startX = evt.touches[0].clientX;
-      startZ = evt.touches[0].clientY;
-    });
-    el.addEventListener('touchend', () => isDragging = false);
-    el.addEventListener('touchmove', (evt) => {
-      if (!isDragging) return;
-      const deltaX = (evt.touches[0].clientX - startX) / 100;
-      const deltaZ = (evt.touches[0].clientY - startZ) / 100;
-      const pos = el.getAttribute('position');
-      el.setAttribute('position', { x: pos.x + deltaX, y: pos.y, z: pos.z + deltaZ });
-      startX = evt.touches[0].clientX;
-      startZ = evt.touches[0].clientY;
-    });
-  }
-});
-// Generazione dei 6 cubi dinamicamente
-document.addEventListener('DOMContentLoaded', () => {
-  const piecesContainer = document.getElementById('pieces');
-  for (let i = 0; i < 6; i++) {
-    const box = document.createElement('a-box');
-    box.setAttribute('depth', '0.2');
-    box.setAttribute('height', '0.2');
-    box.setAttribute('width', '0.2');
-    // Colore casuale valido
-    const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0');
-    box.setAttribute('color', color);
-    // Posizione casuale davanti alla camera
-    const x = (Math.random() - 0.5).toFixed(2);
-    const y = (Math.random() * 0.5 + 0.3).toFixed(2);
-    const z = (-1 - Math.random() * 0.5).toFixed(2);
-    box.setAttribute('position', `${x} ${y} ${z}`);
-    // Applica il drag
-    box.setAttribute('drag-rotate', '');
-    piecesContainer.appendChild(box);
-  }
-});
