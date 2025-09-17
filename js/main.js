@@ -1,69 +1,25 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('pieces');
-  const camera = document.getElementById('camera');
+  const sceneEl = document.getElementById('scene');
 
-  let selectedBox = null;
-  let offset = new THREE.Vector3();
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-  let zFixed = -2; // profondità fissa
-
-  // Creazione cubi
-  for (let i = 0; i < 6; i++) {
-    const box = document.createElement('a-box');
-    box.setAttribute('depth', '0.3');
-    box.setAttribute('height', '0.3');
-    box.setAttribute('width', '0.3');
-
-    const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6,'0');
-    box.setAttribute('color', color);
-
-    const x = (i - 2.5) * 0.6;
-    const y = 0.5;
-    box.setAttribute('position', `${x} ${y} ${zFixed}`);
-
-    box.setAttribute('class', 'draggable');
-    box.id = 'cube' + i;
-
-    container.appendChild(box);
-  }
-
-  // Funzioni comuni per mouse e touch
-  function updateMouse(event) {
-    if (event.touches) {
-      mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
-    } else {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+  sceneEl.addEventListener('loaded', () => {
+    const container = document.getElementById('pieces');
+    const cameraEl = document.getElementById('camera');
+    const camera = cameraEl.getObject3D('camera');
+    if (!camera) {
+      console.error('Camera non trovata!');
+      return;
     }
-  }
 
-  // Pointer down / touchstart → seleziona cubo
-  function onPointerDown(event) {
-    updateMouse(event);
-    raycaster.setFromCamera(mouse, camera.getObject3D('camera'));
-    const intersects = raycaster.intersectObjects(Array.from(container.children).map(c => c.object3D), true);
-    if (intersects.length > 0) {
-      selectedBox = intersects[0].object.el;
-      const intersectionPoint = new THREE.Vector3();
-      raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
-      offset.copy(selectedBox.object3D.position).sub(intersectionPoint);
-    }
-  }
+    initDrag(container, camera);
+  });
+});
 
-  // Pointer move / touchmove → muovi cubo
-  function onPointerMove(event) {
-   document.addEventListener('DOMContentLoaded', () => {
-  const container = document.getElementById('pieces');
-  const cameraEl = document.getElementById('camera');
-  const camera = cameraEl.getObject3D('camera');
-
+function initDrag(container, camera) {
   let selectedBox = null;
   let offset = { x: 0, y: 0 };
   const zFixed = -2;
 
-  // Crea cubi
+  // crea cubi
   for (let i = 0; i < 6; i++) {
     const box = document.createElement('a-box');
     box.setAttribute('depth', '0.3');
@@ -77,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(box);
   }
 
-  // Converti touch/mouse in posizione 3D sul piano zFixed
+  // converte coordinate touch/mouse in posizione 3D sul piano zFixed
   function getPlanePosition(clientX, clientY) {
     const rect = document.body.getBoundingClientRect();
     const ndcX = (clientX / rect.width) * 2 - 1;
@@ -88,8 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const dir = vector.sub(camera.position).normalize();
     const distance = (zFixed - camera.position.z) / dir.z;
-    const pos = camera.position.clone().add(dir.multiplyScalar(distance));
-    return pos;
+    return camera.position.clone().add(dir.multiplyScalar(distance));
   }
 
   function onPointerDown(event) {
@@ -102,7 +57,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const pos = getPlanePosition(clientX, clientY);
 
-    // seleziona il cubo più vicino
+    // seleziona cubo più vicino
     let minDist = Infinity;
     container.querySelectorAll('.draggable').forEach(box => {
       const bPos = box.object3D.position;
@@ -139,5 +94,5 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('touchstart', onPointerDown, {passive:false});
   window.addEventListener('touchmove', onPointerMove, {passive:false});
   window.addEventListener('touchend', onPointerUp);
-});
+}
 
