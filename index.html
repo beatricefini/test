@@ -9,24 +9,16 @@
 </head>
 <body>
   <a-scene
-    embedded
     vr-mode-ui="enabled: false"
     renderer="colorManagement: true, physicallyCorrectLights: true"
-    device-orientation-permission-ui="enabled: true"
-    webxr="optionalFeatures: hit-test, local-floor">
+    webxr="optionalFeatures: local-floor, hit-test">
 
-    <!-- piano per riferimento -->
-    <a-plane position="0 0 0" rotation="-90 0 0"
-             width="4" height="4"
-             color="#777" opacity="0.1"></a-plane>
-
-    <!-- contenitore cubi -->
     <a-entity id="pieces"></a-entity>
 
-    <!-- camera AR -->
     <a-entity id="camera" camera look-controls></a-entity>
   </a-scene>
 
-  <script src="main.js"></script>
+  <!-- attenzione al percorso -->
+  <script src="js/main.js"></script>
 </body>
 </html>
