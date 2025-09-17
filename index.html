@@ -2,7 +2,7 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <title>Puzzle Merge GLB</title>
+  <title>Puzzle Merge VR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
@@ -22,19 +22,34 @@
   <!-- Sfondo AR simulato -->
   <video id="cameraVideo" autoplay playsinline muted></video>
 
-  <a-scene embedded renderer="alpha: true; antialias: true">
-    <!-- Camera fissa -->
+  <a-scene embedded renderer="alpha: true; antialias: true" vr-mode-ui="enabled: false">
     <a-camera id="camera" position="0 1.6 3" look-controls="enabled: false" cursor="rayOrigin: mouse"></a-camera>
-
-    <!-- Contenitori per pezzi e centro -->
     <a-entity id="pieces"></a-entity>
     <a-entity id="center"></a-entity>
 
     <!-- Testo guida al centro -->
-    <a-text id="centerText" value="Trascina qui i pezzi" align="center" color="#FFF"
-            position="0 2 -1" scale="1.5 1.5 1.5"></a-text>
+    <a-text id="centerText" 
+            value="Drag here" 
+            align="center" 
+            color="#FFFFFF"
+            position="0 1.8 -1" 
+            scale="1.2 1.2 1.2"
+            width="2"
+            font="mozillavr">
+    </a-text>
   </a-scene>
 
   <script src="js/main.js"></script>
+
+  <script>
+    // Forza VR di default
+    document.querySelector('a-scene').addEventListener('loaded', () => {
+      const scene = document.querySelector('a-scene');
+      if (scene.enterVR) {
+        scene.enterVR();
+      }
+    });
+  </script>
 </body>
 </html>
+
