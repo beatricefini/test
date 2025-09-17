@@ -5,25 +5,20 @@
   <title>AR Drag Cubes Mobile</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://unpkg.com/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/aframe-extras@6.1.1/dist/aframe-extras.min.js"></script>
   <style>
     html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
   </style>
 </head>
 <body>
   <a-scene
-    vr-mode-ui="enabled: false"
-    webxr="optionalFeatures: hit-test"
     embedded
+    vr-mode-ui="enabled:false"
+    webxr="optionalFeatures: hit-test"
     renderer="colorManagement: true; physicallyCorrectLights: true"
   >
-    <!-- Camera -->
     <a-camera id="camera" position="0 1.6 0" look-controls></a-camera>
-
-    <!-- Contenitore cubi -->
     <a-entity id="pieces"></a-entity>
-
-    <!-- I cubi verranno creati via JS -->
   </a-scene>
 
   <script src="js/main.js"></script>
