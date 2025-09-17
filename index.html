@@ -2,34 +2,29 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <title>Merge Cubes UI</title>
+  <title>AR Merge Cubes</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
     html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
-    #mergeBtn {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      padding: 15px 30px;
-      font-size: 18px;
-      background-color: #ff6600;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      z-index: 999;
-    }
   </style>
 </head>
 <body>
-  <a-scene embedded>
-    <a-camera id="camera" position="0 1.6 3" look-controls></a-camera>
-    <a-entity id="pieces"></a-entity>
-  </a-scene>
+  <a-scene embedded vr-mode-ui="enabled: true" webxr="optionalFeatures: hit-test">
+    <a-camera id="camera" position="0 1.6 3" look-controls>
+    </a-camera>
 
-  <button id="mergeBtn">Merge Cubo</button>
+    <a-entity id="pieces"></a-entity>
+
+    <!-- Pulsante 3D -->
+    <a-plane id="mergeBtn"
+             position="0 0.5 -1.5"
+             width="0.6" height="0.3"
+             color="#ff6600"
+             text="value: Merge Cubo; color: white; align: center"
+             class="clickable">
+    </a-plane>
+  </a-scene>
 
   <script src="js/main.js"></script>
 </body>
