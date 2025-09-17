@@ -15,19 +15,14 @@
     renderer="colorManagement: true, physicallyCorrectLights: true"
     device-orientation-permission-ui="enabled: true">
 
-    <!-- piano semitrasparente -->
-    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4"
-             color="#777" opacity="0.1"></a-plane>
+    <!-- piano -->
+    <a-plane position="0 0 0" rotation="-90 0 0"
+             width="4" height="4" color="#777" opacity="0.1"></a-plane>
 
     <a-entity id="pieces"></a-entity>
 
-    <!-- camera con raycaster dal dito -->
-    <a-entity id="camera"
-              camera
-              look-controls
-              cursor="rayOrigin: touch"
-              raycaster="objects: .draggable">
-    </a-entity>
+    <!-- camera AR -->
+    <a-entity id="camera" camera look-controls></a-entity>
   </a-scene>
 
   <script src="main.js"></script>
