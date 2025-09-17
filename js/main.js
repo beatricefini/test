@@ -1,14 +1,14 @@
 AFRAME.registerComponent('drag-cursor', {
   init: function () {
-    const el = this.el; // entità cubo
-    const sceneEl = document.querySelector('a-scene');
-    const camera = document.getElementById('camera').getObject3D('camera');
+    const el = this.el;
+    const cameraEl = document.getElementById('camera');
+    const camera = cameraEl.getObject3D('camera');
 
     let selected = false;
     let offset = new THREE.Vector3();
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2();
-    const zFixed = -2;
+    const zFixed = -1.5; // davanti alla camera
 
     function updateMouse(event) {
       if (event.touches) {
@@ -52,6 +52,7 @@ AFRAME.registerComponent('drag-cursor', {
     window.addEventListener('mousedown', onPointerDown);
     window.addEventListener('mousemove', onPointerMove);
     window.addEventListener('mouseup', onPointerUp);
+
     window.addEventListener('touchstart', onPointerDown, { passive: false });
     window.addEventListener('touchmove', onPointerMove, { passive: false });
     window.addEventListener('touchend', onPointerUp);
@@ -71,12 +72,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const color = '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0');
     box.setAttribute('color', color);
 
-    const x = (i - 2.5) * 0.6;
-    const y = 0.5;
-    const z = -2;
+    const x = (i - 2.5) * 0.5;
+    const y = 1.2;
+    const z = -1.5;
     box.setAttribute('position', `${x} ${y} ${z}`);
 
-    box.setAttribute('drag-cursor', ''); // aggiunge il componente drag
+    box.setAttribute('drag-cursor', ''); // componente drag
     container.appendChild(box);
   }
 });
