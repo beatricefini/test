@@ -11,14 +11,16 @@
   <a-scene
     embedded
     vr-mode-ui="enabled: false"
-    ar-mode="true"
     renderer="colorManagement: true, physicallyCorrectLights: true"
-    device-orientation-permission-ui="enabled: true">
+    device-orientation-permission-ui="enabled: true"
+    webxr="optionalFeatures: hit-test, local-floor">
 
-    <!-- piano -->
+    <!-- piano per riferimento -->
     <a-plane position="0 0 0" rotation="-90 0 0"
-             width="4" height="4" color="#777" opacity="0.1"></a-plane>
+             width="4" height="4"
+             color="#777" opacity="0.1"></a-plane>
 
+    <!-- contenitore cubi -->
     <a-entity id="pieces"></a-entity>
 
     <!-- camera AR -->

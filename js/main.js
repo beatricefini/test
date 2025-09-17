@@ -4,9 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let selectedBox = null;
   let offset = new THREE.Vector3();
-  let zOffset = -1; // distanza davanti alla camera
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+  const zOffset = -1; // circa 1m davanti alla camera
 
-  // Crea i cubi davanti all'utente
+  // crea 6 cubi
   for (let i = 0; i < 6; i++) {
     const box = document.createElement('a-box');
     box.setAttribute('depth', '0.3');
@@ -26,65 +28,58 @@ document.addEventListener('DOMContentLoaded', () => {
     container.appendChild(box);
   }
 
-  // Funzione per calcolare posizione dal touch
-  function getWorldPositionFromTouch(touch) {
-    const xNorm = (touch.clientX / window.innerWidth) * 2 - 1;
-    const yNorm = -(touch.clientY / window.innerHeight) * 2 + 1;
-
-    const cam = cameraEl.getObject3D('camera');
-    if (!cam) return null;
-
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera({ x: xNorm, y: yNorm }, cam);
-
-    const point = new THREE.Vector3();
-    raycaster.ray.at(
-      (zOffset - raycaster.ray.origin.z) / raycaster.ray.direction.z,
-      point
-    );
-    return point;
+  function updateMouse(touch) {
+    mouse.x = (touch.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(touch.clientY / window.innerHeight) * 2 + 1;
   }
 
-  // Selezione cubo con touchstart
-  window.addEventListener('touchstart', evt => {
-    const touch = evt.touches[0];
-    const point = getWorldPositionFromTouch(touch);
-    if (!point) return;
+  function onTouchStart(evt) {
+    const cam = cameraEl.getObject3D('camera');
+    if (!cam) return;
+    updateMouse(evt.touches[0]);
+    raycaster.setFromCamera(mouse, cam);
 
-    // Trova il cubo più vicino al punto toccato
-    let minDist = Infinity;
-    let nearest = null;
-    container.querySelectorAll('.draggable').forEach(box => {
-      const pos = box.object3D.position;
-      const dist = pos.distanceTo(point);
-      if (dist < 0.3 && dist < minDist) {
-        nearest = box;
-        minDist = dist;
-      }
-    });
+    const intersects = raycaster.intersectObjects(
+      Array.from(container.children).map(c => c.object3D),
+      true
+    );
 
-    if (nearest) {
-      selectedBox = nearest;
-      offset.copy(selectedBox.object3D.position).sub(point);
+    if (intersects.length > 0) {
+      selectedBox = intersects[0].object.el;
+      const intersectionPoint = new THREE.Vector3();
+      raycaster.ray.at(
+        (zOffset - raycaster.ray.origin.z) / raycaster.ray.direction.z,
+        intersectionPoint
+      );
+      offset.copy(selectedBox.object3D.position).sub(intersectionPoint);
     }
-  });
+  }
 
-  // Movimento cubo
-  window.addEventListener('touchmove', evt => {
+  function onTouchMove(evt) {
     if (!selectedBox) return;
-    const touch = evt.touches[0];
-    const point = getWorldPositionFromTouch(touch);
-    if (!point) return;
+    const cam = cameraEl.getObject3D('camera');
+    if (!cam) return;
+    updateMouse(evt.touches[0]);
+    raycaster.setFromCamera(mouse, cam);
+
+    const intersectionPoint = new THREE.Vector3();
+    raycaster.ray.at(
+      (zOffset - raycaster.ray.origin.z) / raycaster.ray.direction.z,
+      intersectionPoint
+    );
 
     selectedBox.object3D.position.set(
-      point.x + offset.x,
-      point.y + offset.y,
+      intersectionPoint.x + offset.x,
+      intersectionPoint.y + offset.y,
       zOffset
     );
-  });
+  }
 
-  // Rilascio cubo
-  window.addEventListener('touchend', () => {
+  function onTouchEnd() {
     selectedBox = null;
-  });
+  }
+
+  window.addEventListener('touchstart', onTouchStart);
+  window.addEventListener('touchmove', onTouchMove);
+  window.addEventListener('touchend', onTouchEnd);
 });
