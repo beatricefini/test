@@ -8,15 +8,15 @@
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
 </head>
 <body>
-  <a-scene
-    vr-mode-ui="enabled: false"
-    renderer="colorManagement: true, physicallyCorrectLights: true"
-    webxr="optionalFeatures: local-floor, hit-test">
-
+  <a-scene>
+    <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#777" opacity="0.2"></a-plane>
     <a-entity id="pieces"></a-entity>
-    <a-entity id="camera" camera look-controls></a-entity>
+
+    <a-camera position="0 1.6 3" look-controls="enabled: false" id="camera"
+              cursor="rayOrigin: mouse" raycaster="objects: .draggable"></a-camera>
   </a-scene>
 
   <script src="js/main.js"></script>
 </body>
 </html>
+
