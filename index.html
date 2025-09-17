@@ -4,23 +4,18 @@
   <meta charset="utf-8">
   <title>Drag Cubes AR</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@1.4.0/examples/ar.js"></script>
 </head>
 <body>
-  <a-scene
-    vr-mode-ui="enabled: false"
-    embedded
-    arjs="sourceType: webcam; debugUIEnabled: false;">
-    
-    <!-- Piano di riferimento per i cubi -->
+  <a-scene>
+    <!-- Piano di riferimento -->
     <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#777" opacity="0.2"></a-plane>
 
     <!-- Contenitore cubi -->
     <a-entity id="pieces"></a-entity>
 
-    <a-camera position="0 1.6 0" id="camera"></a-camera>
+    <!-- Camera con cursor -->
+    <a-camera position="0 1.6 3" id="camera" cursor="rayOrigin: mouse"></a-camera>
   </a-scene>
 
   <script src="js/main.js"></script>
