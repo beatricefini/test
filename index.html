@@ -2,20 +2,33 @@
 <html lang="it">
 <head>
   <meta charset="utf-8">
-  <title>Drag Cubes AR/VR</title>
+  <title>Puzzle Merge Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
   <style>
     html, body { margin:0; padding:0; width:100%; height:100%; overflow:hidden; }
+    video#cameraVideo {
+      position: fixed;
+      top:0;
+      left:0;
+      width:100%;
+      height:100%;
+      object-fit: cover;
+      z-index:-1;
+    }
   </style>
 </head>
 <body>
-  <a-scene embedded vr-mode-ui="enabled: true" webxr="optionalFeatures: hit-test">
-    <a-camera id="camera" position="0 1.6 3" cursor="rayOrigin: mouse"></a-camera>
+  <video id="cameraVideo" autoplay playsinline muted></video>
+
+  <a-scene embedded renderer="alpha: true; antialias: true">
+    <a-camera id="camera" position="0 1.6 3" look-controls="enabled: false" cursor="rayOrigin: mouse"></a-camera>
 
     <a-entity id="pieces"></a-entity>
+    <a-entity id="center"></a-entity>
 
-    <a-plane position="0 0 -1" rotation="-90 0 0" width="4" height="4" color="#777" opacity="0.2"></a-plane>
+    <a-text id="centerText" value="Trascina qui i pezzi" align="center" color="#FFF"
+            position="0 2 -1" scale="1.5 1.5 1.5"></a-text>
   </a-scene>
 
   <script src="js/main.js"></script>
