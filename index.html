@@ -1,27 +1,39 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="utf-8">
+  <meta charset="utf-8" />
   <title>Drag Cubes AR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <script src="https://aframe.io/releases/1.4.0/aframe.min.js"></script>
+  <style>
+    /* piccolo hint overlay */
+    #hint {
+      position: fixed;
+      left: 10px;
+      bottom: 10px;
+      padding: 8px 12px;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      font-family: sans-serif;
+      font-size: 14px;
+      border-radius: 6px;
+      z-index: 9999;
+    }
+  </style>
 </head>
 <body>
+  <div id="hint">In AR: tocca per selezionare, tieni premuto e muovi il telefono o trascina col dito per spostare (X = destra/sinistra, Y = su/giù).</div>
+
   <a-scene
     vr-mode-ui="enabled: true"
-    embedded
     xr-mode-ui="enabled: true"
     renderer="colorManagement: true"
     background="transparent: true">
 
-    <!-- Piano di riferimento -->
     <a-plane position="0 0 0" rotation="-90 0 0" width="4" height="4" color="#777" opacity="0.2"></a-plane>
-
-    <!-- Contenitore cubi -->
     <a-entity id="pieces"></a-entity>
 
-    <!-- Camera bloccata con rayOrigin: screen (AR compatibile) -->
+    <!-- camera bloccata; cursor rayOrigin: screen per AR -->
     <a-camera
       id="camera"
       look-controls="enabled: false"
