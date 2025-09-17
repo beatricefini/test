@@ -17,20 +17,30 @@ document.addEventListener('DOMContentLoaded', () => {
   const zFixed = -1;
 
   const pieces = [];
-  const formeIniziali = ["box","sphere","cone","cylinder","torus","tetrahedron"];
-  const raggio = 1.2; // cerchio più vicino al centro
-  const pezzoScale = 0.2; // scala più piccola
+  const models = [
+    'models/piece1.glb',
+    'models/piece2.glb',
+    'models/piece3.glb',
+    'models/piece4.glb',
+    'models/piece5.glb',
+    'models/piece6.glb'
+  ];
 
-  // Creazione pezzi iniziali in cerchio e scala più piccola
-  for (let i = 0; i < 6; i++) {
-    const angle = (i / 6) * Math.PI * 2;
+  const raggio = 1.5;        // disposizione circolare
+  const pezzoScale = 0.2;    // scala più piccola per i modelli
+
+  // Creazione pezzi GLB in cerchio
+  for (let i = 0; i < models.length; i++) {
+    const angle = (i / models.length) * Math.PI * 2;
     const x = Math.cos(angle) * raggio;
     const y = Math.sin(angle) * raggio + 1.5;
 
-    const piece = document.createElement(`a-${formeIniziali[i]}`);
-    piece.setAttribute('color', '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+    const piece = document.createElement('a-entity');
+    piece.setAttribute('gltf-model', models[i]);
     piece.setAttribute('position', {x: x, y: y, z: zFixed});
-    piece.setAttribute('scale', `${pezzoScale} ${pezzoScale} ${pezzoScale}`);
+    piece.setAttribute('scale', {x: pezzoScale, y: pezzoScale, z: pezzoScale});
+
+    piece.addEventListener('model-loaded', () => console.log('Caricato', models[i]));
 
     container.appendChild(piece);
     pieces.push(piece);
@@ -96,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
       selectedPiece.setAttribute('animation__scale', {
         property: 'scale',
-        to: '0.5 0.5 0.5', // ridotta
+        to: '0.5 0.5 0.5',
         dur: 500,
         easing: 'easeOutQuad'
       });
@@ -113,14 +123,14 @@ document.addEventListener('DOMContentLoaded', () => {
           if(p.parentNode) p.parentNode.removeChild(p);
         });
 
-        // Crea la forma finale centrale (sfera più piccola)
+        // Crea la sfera finale centrale
         const finalShape = document.createElement('a-sphere');
         finalShape.setAttribute('color','#FFD700');
         finalShape.setAttribute('position',{...centerPos});
-        finalShape.setAttribute('radius',0.5); // più piccola
+        finalShape.setAttribute('radius',0.5);
         center.appendChild(finalShape);
 
-        // Animazione di fluttuazione continua
+        // Animazione di fluttuazione
         finalShape.setAttribute('animation__float', {
           property: 'position',
           dir: 'alternate',
