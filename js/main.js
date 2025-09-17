@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const pieces = [];
   const formeIniziali = ["box","sphere","cone","cylinder","torus","tetrahedron"];
-  const raggio = 1.5; // cerchio più vicino al centro
+  const raggio = 1.2; // cerchio più vicino al centro
   const pezzoScale = 0.2; // scala più piccola
 
   // Creazione pezzi iniziali in cerchio e scala più piccola
