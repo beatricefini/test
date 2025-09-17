@@ -1,20 +1,67 @@
-document.querySelector('a-scene').addEventListener('loaded', () => {
-  const container = document.getElementById('pieces');
-  const cameraEl = document.getElementById('camera');
-  const camera = cameraEl.getObject3D('camera');
+AFRAME.registerComponent('drag-cursor', {
+  init: function () {
+    const el = this.el; // entità cubo
+    const sceneEl = document.querySelector('a-scene');
+    const camera = document.getElementById('camera').getObject3D('camera');
 
-  if (!camera) {
-    console.error("Camera non trovata!");
-    return;
+    let selected = false;
+    let offset = new THREE.Vector3();
+    const raycaster = new THREE.Raycaster();
+    const mouse = new THREE.Vector2();
+    const zFixed = -2;
+
+    function updateMouse(event) {
+      if (event.touches) {
+        mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
+      } else {
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      }
+    }
+
+    function onPointerDown(event) {
+      updateMouse(event);
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObject(el.object3D, true);
+      if (intersects.length > 0) {
+        selected = true;
+        const intersectionPoint = new THREE.Vector3();
+        raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
+        offset.copy(el.object3D.position).sub(intersectionPoint);
+      }
+    }
+
+    function onPointerMove(event) {
+      if (!selected) return;
+      updateMouse(event);
+      raycaster.setFromCamera(mouse, camera);
+      const intersectionPoint = new THREE.Vector3();
+      raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
+      el.object3D.position.set(
+        intersectionPoint.x + offset.x,
+        intersectionPoint.y + offset.y,
+        zFixed
+      );
+    }
+
+    function onPointerUp() {
+      selected = false;
+    }
+
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('mousemove', onPointerMove);
+    window.addEventListener('mouseup', onPointerUp);
+    window.addEventListener('touchstart', onPointerDown, { passive: false });
+    window.addEventListener('touchmove', onPointerMove, { passive: false });
+    window.addEventListener('touchend', onPointerUp);
   }
+});
 
-  let selectedBox = null;
-  let offset = new THREE.Vector3();
-  const raycaster = new THREE.Raycaster();
-  const mouse = new THREE.Vector2();
-  const zFixed = -2; // profondità fissa dei cubi
+// Creazione cubi
+document.addEventListener('DOMContentLoaded', () => {
+  const container = document.getElementById('pieces');
 
-  // Creazione cubi
   for (let i = 0; i < 6; i++) {
     const box = document.createElement('a-box');
     box.setAttribute('depth', '0.3');
@@ -26,67 +73,10 @@ document.querySelector('a-scene').addEventListener('loaded', () => {
 
     const x = (i - 2.5) * 0.6;
     const y = 0.5;
-    box.setAttribute('position', `${x} ${y} ${zFixed}`);
+    const z = -2;
+    box.setAttribute('position', `${x} ${y} ${z}`);
 
-    box.classList.add('draggable');
+    box.setAttribute('drag-cursor', ''); // aggiunge il componente drag
     container.appendChild(box);
   }
-
-  // Funzione per aggiornare le coordinate mouse/touch
-  function updateMouse(event) {
-    if (event.touches) {
-      mouse.x = (event.touches[0].clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.touches[0].clientY / window.innerHeight) * 2 + 1;
-    } else {
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-    }
-  }
-
-  // Selezione cubo
-  function onPointerDown(event) {
-    updateMouse(event);
-    raycaster.setFromCamera(mouse, camera);
-
-    const intersects = raycaster.intersectObjects(
-      Array.from(container.children).map(c => c.object3D), true
-    );
-
-    if (intersects.length > 0) {
-      selectedBox = intersects[0].object.el;
-      const intersectionPoint = new THREE.Vector3();
-      raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
-      offset.copy(selectedBox.object3D.position).sub(intersectionPoint);
-    }
-  }
-
-  // Movimento cubo
-  function onPointerMove(event) {
-    if (!selectedBox) return;
-    updateMouse(event);
-    raycaster.setFromCamera(mouse, camera);
-
-    const intersectionPoint = new THREE.Vector3();
-    raycaster.ray.at((zFixed - raycaster.ray.origin.z) / raycaster.ray.direction.z, intersectionPoint);
-
-    selectedBox.object3D.position.set(
-      intersectionPoint.x + offset.x,
-      intersectionPoint.y + offset.y,
-      zFixed
-    );
-  }
-
-  // Rilascio cubo
-  function onPointerUp() {
-    selectedBox = null;
-  }
-
-  // Event listener mouse + touch
-  window.addEventListener('mousedown', onPointerDown);
-  window.addEventListener('mousemove', onPointerMove);
-  window.addEventListener('mouseup', onPointerUp);
-
-  window.addEventListener('touchstart', onPointerDown, { passive: false });
-  window.addEventListener('touchmove', onPointerMove, { passive: false });
-  window.addEventListener('touchend', onPointerUp);
 });
